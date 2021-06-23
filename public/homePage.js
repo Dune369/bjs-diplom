@@ -24,7 +24,7 @@ let api = ApiConnector.getStocks(data => {
     }
 })
 
-setInterval(api, 3000);
+setInterval(api, 60000);
 
 
 // Операции с деньгами
