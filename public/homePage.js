@@ -17,51 +17,41 @@ ApiConnector.current(data => {
 
 // Получение текущих курсов валюты
 const ratesBoard = new RatesBoard();
-
-ApiConnector.getStocks(data => {
+let api = ApiConnector.getStocks(data => {
     if (data.success) {
         ratesBoard.clearTable();
-        ratesBoard.fillTable(data.data)
-        return setInterval(() => {
-            ratesBoard.clearTable();
-            ratesBoard.fillTable(data.data)
-        }, 60000);
+        ratesBoard.fillTable(data.data);
     }
 })
+
+setInterval(api, 3000);
+
 
 // Операции с деньгами
 const moneyManager = new MoneyManager();
 // Реализуйте пополнение баланса
 moneyManager.addMoneyCallback = data => {
     ApiConnector.addMoney(data, response => {
-        if (response.success) {
-            ProfileWidget.showProfile(response.data);
-            moneyManager.setMessage(data.currency && data.amount, 'Успешно!')
-        }
+        return response.success === true ? ProfileWidget.showProfile(response.data) &&
+            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
     })
-    moneyManager.setMessage(data.currency && data.amount, 'Заполните данные!')
 };
 
 //Реализуйте конвертирование валюты
 moneyManager.conversionMoneyCallback = data => {
     ApiConnector.convertMoney(data, response => {
-        if (response.success) {
-            ProfileWidget.showProfile(response.data);
-            moneyManager.setMessage(data.fromCurrency && data.targetCurrency && data.fromAmount, 'Успешно!')
-        }
+        return response.success === true ? ProfileWidget.showProfile(response.data) &&
+            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
     })
-    moneyManager.setMessage(data.fromCurrency && data.targetCurrency && data.fromAmount, 'Заполните данные!')
+
 };
 
 // Реализуйте перевод валюты
 moneyManager.sendMoneyCallback = data => {
     ApiConnector.transferMoney(data, response => {
-        if (response.success) {
-            ProfileWidget.showProfile(response.data);
-            moneyManager.setMessage(data.to && data.currency && data.amount, 'Успешно!')
-        }
+        return response.success === true ? ProfileWidget.showProfile(response.data) &&
+            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
     })
-    moneyManager.setMessage(data.to && data.currency && data.amount, 'Заполните данные!')
 };
 
 // Операции с деньгами
@@ -73,29 +63,20 @@ ApiConnector.getFavorites((data) => {
         favoritesWidget.fillTable(data.data);
         moneyManager.updateUsersList(data.data);
     }
-    
-    
 })
 
 // Реализуйте добавления пользователя в список избранных
 favoritesWidget.addUserCallback = (data) => {
     ApiConnector.addUserToFavorites(data, response => {
-        if (response.success) {
-            favoritesWidget.clearTable();
-            moneyManager.updateUsersList(response);
-            moneyManager.setMessage(data.id && data.name, 'Успешно!')
-        }
+        return response.success === true ? favoritesWidget.clearTable() &&
+            moneyManager.updateUsersList(response) &&
+            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
     })
-    moneyManager.setMessage(data.id && data.name, 'Заполните данные!')
 };
-
 
 // Реализуйте удаление пользователя из избранного
 favoritesWidget.removeUserCallback = (data) => {
     ApiConnector.removeUserFromFavorites(data, response => {
-        if (response.success) {
-            moneyManager.setMessage(data, 'Успешно!')
-        }
+        return response.success === true ? moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
     })
-    moneyManager.setMessage(data, 'Заполните данные!')
 }
