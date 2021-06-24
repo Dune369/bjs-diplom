@@ -17,13 +17,16 @@ ApiConnector.current(data => {
 
 // Получение текущих курсов валюты
 const ratesBoard = new RatesBoard();
-let api = ApiConnector.getStocks(data => {
-    if (data.success) {
-        ratesBoard.clearTable();
-        ratesBoard.fillTable(data.data);
-    }
-})
 
+function api() {
+    ApiConnector.getStocks(data => {
+        if (data.success) {
+            ratesBoard.clearTable();
+            ratesBoard.fillTable(data.data);
+        }
+    })
+}
+api()
 setInterval(api, 60000);
 
 
@@ -32,25 +35,30 @@ const moneyManager = new MoneyManager();
 // Реализуйте пополнение баланса
 moneyManager.addMoneyCallback = data => {
     ApiConnector.addMoney(data, response => {
-        return response.success === true ? ProfileWidget.showProfile(response.data) &&
-            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
+        if (response.success) {
+            ProfileWidget.showProfile(response.data)
+        }
+        moneyManager.setMessage(response.success, response.success ? "Баланс пополнен!" : response.error);
     })
 };
 
 //Реализуйте конвертирование валюты
 moneyManager.conversionMoneyCallback = data => {
     ApiConnector.convertMoney(data, response => {
-        return response.success === true ? ProfileWidget.showProfile(response.data) &&
-            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
+        if (response.success) {
+            ProfileWidget.showProfile(response.data)
+        }
+        moneyManager.setMessage(response.success, response.success ? "Конвертироно успешно!" : response.error)
     })
-
 };
 
 // Реализуйте перевод валюты
 moneyManager.sendMoneyCallback = data => {
     ApiConnector.transferMoney(data, response => {
-        return response.success === true ? ProfileWidget.showProfile(response.data) &&
-            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
+        if (response.success) {
+            ProfileWidget.showProfile(response.data)
+        }
+        moneyManager.setMessage(response.success, response.success ? "Перевод выполнен!" : response.error)
     })
 };
 
@@ -68,15 +76,23 @@ ApiConnector.getFavorites((data) => {
 // Реализуйте добавления пользователя в список избранных
 favoritesWidget.addUserCallback = (data) => {
     ApiConnector.addUserToFavorites(data, response => {
-        return response.success === true ? favoritesWidget.clearTable() &&
-            moneyManager.updateUsersList(response) &&
-            moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
+        if (response.success) {
+            favoritesWidget.clearTable()
+            favoritesWidget.fillTable(response.data);
+            moneyManager.updateUsersList(response.data);
+        }
+        moneyManager.setMessage(response.success, response.success ? "Пользователь добавлен!" : response.error)
     })
 };
 
 // Реализуйте удаление пользователя из избранного
 favoritesWidget.removeUserCallback = (data) => {
     ApiConnector.removeUserFromFavorites(data, response => {
-        return response.success === true ? moneyManager.setMessage(response.success, response.error) : moneyManager.setMessage(response.success, response.error);
+        if (response.success) {
+            favoritesWidget.clearTable()
+            favoritesWidget.fillTable(response.data);
+            moneyManager.updateUsersList(response.data);
+        }
+        moneyManager.setMessage(response.success, response.success ? "Пользователь удален!" : response.error)
     })
 }
